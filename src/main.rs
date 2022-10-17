@@ -1,4 +1,4 @@
-use std::{env, fs, process};
+use std::{env, error::Error, fs, process};
 
 fn main() {
     let argumentos: Vec<String> = env::args().collect();
@@ -10,10 +10,10 @@ fn main() {
     println!("Buscando por {}", configuração.consulta);
     println!("No arquivo {}", configuração.caminho_arquivo);
 
-    let conteúdo =
-        fs::read_to_string(configuração.caminho_arquivo).expect("Deve conseguir ler o arquivo");
-
-    println!("No texto:\n{conteúdo}");
+    if let Err(erro) = executar(configuração) {
+        println!("Aplicação falhou: {erro}");
+        process::exit(1);
+    }
 }
 
 struct Configuração {
@@ -32,4 +32,12 @@ impl Configuração {
             caminho_arquivo: argumentos[2].clone(),
         })
     }
+}
+
+fn executar(configuração: Configuração) -> Result<(), Box<dyn Error>> {
+    let conteúdo = fs::read_to_string(configuração.caminho_arquivo)?;
+
+    println!("No texto:\n{conteúdo}");
+
+    Ok(())
 }
