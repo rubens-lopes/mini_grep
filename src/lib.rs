@@ -12,7 +12,14 @@ impl Configuração {
             return Err(String::from("Argumentos insuficientes"));
         }
 
-        let modo_permissivo = env::var("MODO_PERMISSIVO").is_ok();
+        let modo_permissivo = match argumentos.get(3) {
+            Some(argumento) => argumento == "--modo-permissivo",
+            _ => {
+                let ref modo_permissivo = env::var("MODO_PERMISSIVO");
+                let está_ativo = |modo| modo == "1";
+                matches!(modo_permissivo, Ok(modo) if está_ativo(modo))
+            },
+        };
 
         Ok(Configuração {
             consulta: argumentos[1].clone(),
