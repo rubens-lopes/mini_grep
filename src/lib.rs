@@ -22,7 +22,7 @@ impl Configuração {
 
         let modo_permissivo = match argumentos.next() {
             Some(argumento) => argumento == "--modo-permissivo",
-            _ => "1".to_owned() == env::var("MODO_PERMISSIVO").unwrap_or_else(|_| "0".to_owned()),
+            _ => &env::var("MODO_PERMISSIVO").unwrap_or_else(|_| "0".to_owned()) == "1",
         };
 
         Ok(Configuração {
@@ -55,32 +55,19 @@ pub fn executar(configuração: Configuração) -> Result<(), Box<dyn error::Err
 }
 
 pub fn pesquisar<'a>(consulta: &str, conteúdo: &'a str) -> Vec<&'a str> {
-    let mut resultado = Vec::new();
-
-    for linha in conteúdo.lines() {
-        if linha.contains(consulta) == false {
-            continue;
-        }
-
-        resultado.push(linha);
-    }
-
-    resultado
+    conteúdo
+        .lines()
+        .filter(|linha| linha.contains(consulta))
+        .collect()
 }
 
 pub fn pesquisar_permissivamente<'a>(consulta: &str, conteúdo: &'a str) -> Vec<&'a str> {
     let consulta = &preparar_texto(&consulta);
-    let mut resultado = Vec::new();
 
-    for linha in conteúdo.lines() {
-        if preparar_texto(linha).contains(consulta) == false {
-            continue;
-        }
-
-        resultado.push(linha);
-    }
-
-    resultado
+    conteúdo
+        .lines()
+        .filter(|linha| preparar_texto(linha).contains(consulta))
+        .collect()
 }
 
 fn preparar_texto(texto: &str) -> String {
