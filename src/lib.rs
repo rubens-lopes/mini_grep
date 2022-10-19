@@ -7,23 +7,27 @@ pub struct Configuração {
 }
 
 impl Configuração {
-    pub fn from(argumentos: &[String]) -> Result<Self, String> {
-        if argumentos.len() < 3 {
-            return Err(String::from("Argumentos insuficientes"));
-        }
+    pub fn from(mut argumentos: impl Iterator<Item = String>) -> Result<Self, &'static str> {
+        argumentos.next();
 
-        let modo_permissivo = match argumentos.get(3) {
+        let consulta = match argumentos.next() {
+            Some(argumento) => argumento,
+            None => return Err("Termo a ser buscado é obrigatório."),
+        };
+
+        let caminho_arquivo = match argumentos.next() {
+            Some(argumento) => argumento,
+            None => return Err("Caminho para o arquivo é obrigatório."),
+        };
+
+        let modo_permissivo = match argumentos.next() {
             Some(argumento) => argumento == "--modo-permissivo",
-            _ => {
-                let ref modo_permissivo = env::var("MODO_PERMISSIVO");
-                let está_ativo = |modo| modo == "1";
-                matches!(modo_permissivo, Ok(modo) if está_ativo(modo))
-            },
+            _ => "1".to_owned() == env::var("MODO_PERMISSIVO").unwrap_or_else(|_| "0".to_owned()),
         };
 
         Ok(Configuração {
-            consulta: argumentos[1].clone(),
-            caminho_arquivo: argumentos[2].clone(),
+            consulta,
+            caminho_arquivo,
             modo_permissivo,
         })
     }
